@@ -28,6 +28,10 @@ a:hover {
   text-decoration: none;
 }
 
+.router-link-active {
+  color: unset;
+}
+
 .h-box {
   display: flex;
   flex-direction: row;

@@ -4,9 +4,6 @@ import { RouterView } from 'vue-router'
 
 <template>
   <nav :class="$style.nav">
-    <RouterLink :class="$style.link" to="/">
-      <i class="fa fa-home" aria-hidden="true"></i>&nbsp;Home
-    </RouterLink>
     <RouterLink :class="$style.link" to="/inventory">
       <i class="fa fa-building-o" aria-hidden="true"></i>&nbsp;Inventory
     </RouterLink>
@@ -40,7 +37,5 @@ import { RouterView } from 'vue-router'
 }
 </style>
 <style>
-.router-link-active {
-  color: unset;
-}
+
 </style>
