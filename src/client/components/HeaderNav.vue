@@ -1,0 +1,41 @@
+<template>
+  <nav :class="$style.nav">
+    <RouterLink :class="$style.link" to="/">
+      <i class="fa fa-home" aria-hidden="true"></i>&nbsp;Home
+    </RouterLink>
+    <RouterLink :class="$style.link" to="/inventory">
+      <i class="fa fa-building-o" aria-hidden="true"></i>&nbsp;Inventory
+    </RouterLink>
+    <RouterLink :class="$style.link" to="/inventoryreport">
+      <i class="fa fa-line-chart" aria-hidden="true"></i>&nbsp;Report
+    </RouterLink>
+    <RouterLink :class="$style.link" to="/settings">
+      <i class="fa fa-cog" aria-hidden="true"></i>&nbsp;Settings
+    </RouterLink>
+  </nav>
+</template>
+<style module>
+.nav {
+  display: flex;
+  flex-direction: row;
+  background-color: rgba(200, 200, 200, 0.9);
+  border: 1px solid gray;
+  align-items: center;
+  height: var(--header-height);
+}
+
+.link {
+  margin: 0;
+  min-width: 8rem;
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid gray;
+}
+</style>
+<style>
+.router-link-active {
+  color: unset;
+}
+</style>
