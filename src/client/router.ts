@@ -1,25 +1,35 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
-import HelloClientVue from '@/client/views/HelloClient.vue'
+import { createRouter, createWebHistory } from 'vue-router'
+import HomeView from '@/client/views/HomeView.vue'
 
-const staticPaths = {
-  home: '/',
-  hello: '/hello'
-}
-
-const router = createRouter({
-  history: createWebHashHistory(import.meta.env.BASE_URL),
+export const router = createRouter({
+  history: createWebHistory('#'),
   routes: [
     {
-      path: staticPaths.home,
+      path: '/',
       name: 'home',
-      component: HelloClientVue
+      component: HomeView
     },
     {
-      path: staticPaths.hello,
-      name: 'hello',
-      component: () => import('@/client/views/HelloServer.vue')
+      path: '/inventory',
+      name: 'inventory',
+      component: () => import('@/client/views/InventoryView.vue')
+    },
+    {
+      path: '/inventoryReport',
+      name: 'report',
+      // route level code-splitting
+      // this generates a separate chunk (About.[hash].js) for this route
+      // which is lazy-loaded when the route is visited.
+      component: () => import('@/client/views/InventoryReport.vue')
+    },
+    {
+      path: '/settings',
+      name: 'settings',
+      // route level code-splitting
+      // this generates a separate chunk (About.[hash].js) for this route
+      // which is lazy-loaded when the route is visited.
+      component: () => import('@/client/views/SettingsView.vue')
     }
   ]
 })
 
-export { router, staticPaths }

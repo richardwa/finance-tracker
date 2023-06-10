@@ -1,26 +1,57 @@
-*,
-*::before,
-*::after {
+:root {
+  --header-height: 2rem;
+  --gap: 0.25rem;
+}
+#app {
+  display: flex;
+  flex-direction: column;
+  min-width: 500px;
+}
+* {
   font-family: Arial, Helvetica, sans-serif;
   box-sizing: border-box;
 }
+input[type='file']::file-selector-button {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+  margin: 0;
+}
 
 a {
-  color: blue;
   text-decoration: none;
+  color: blue;
 }
 
 a:hover {
-  text-decoration: underline;
-}
-
-a.router-link-active,
-a.router-link-exact-active {
-  color: unset;
-  cursor: default;
   text-decoration: none;
 }
 
-:root {
-  --gap: 0.5rem;
+.h-box {
+  display: flex;
+  flex-direction: row;
+}
+.v-box {
+  display: flex;
+  flex-direction: column;
+}
+.center {
+  align-items: center;
+}
+.justify {
+  justify-content: center;
+}
+
+button {
+  border: 1px solid gray;
+  cursor: pointer;
+  border-radius: 0.25rem;
+}
+
+div.tabulator-row.tabulator-selected {
+  background-color: #b2d0fb;
+}
+div.tabulator-row.tabulator-selected:hover {
+  background-color: #b2d0fb;
 }

@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { PersistanceCollection, type PageKey } from '@/stores/persistance-collection'
+import { PersistanceCollection, type PageKey } from '@/client/stores/persistance-collection'
 import { v4 as uuidv4 } from 'uuid'
-import { format } from '@/util'
+import { format } from '@/client/util'
 
 export type Item = Pick<PageKey, 'id'> & {
   date: string

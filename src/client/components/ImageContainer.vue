@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { Item } from '@/stores/inventory-store'
+import type { Item } from '@/client/stores/inventory-store'
 import { ref } from 'vue'
 import LightBoxVue from './LightBox.vue'
-import { getThumbUrl, getImageUrl } from '@/stores/file-service'
+import { getThumbUrl, getImageUrl } from '@/client/stores/file-service'
 
 defineProps<{
   selected?: Item
