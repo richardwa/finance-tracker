@@ -1,0 +1,26 @@
+*,
+*::before,
+*::after {
+  font-family: Arial, Helvetica, sans-serif;
+  box-sizing: border-box;
+}
+
+a {
+  color: blue;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+a.router-link-active,
+a.router-link-exact-active {
+  color: unset;
+  cursor: default;
+  text-decoration: none;
+}
+
+:root {
+  --gap: 0.5rem;
+}
