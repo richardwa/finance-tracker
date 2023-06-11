@@ -7,9 +7,11 @@ const lock = new AsyncLock({ timeout: 5000 })
 export class FileDB<T extends BaseDB> implements Crud<T> {
   private filePath: string
   private data = new Map<string, string>()
+  private onReady: () => void
 
-  constructor(filePath: string) {
+  constructor(filePath: string, onReady: () => void) {
     this.filePath = filePath
+    this.onReady = onReady
     this.loadData()
   }
 
@@ -18,8 +20,8 @@ export class FileDB<T extends BaseDB> implements Crud<T> {
       // no file yet -- don't load
       if (err) return
 
-      fs.readFile(this.filePath, 'utf-8', (fileData) => {
-        const list = JSON.parse('[' + fileData + ']') as T[]
+      fs.readFile(this.filePath, 'utf-8', (err, fileData) => {
+        const list = JSON.parse(`[${fileData}]`) as T[]
         let requireCompact = false
         for (const t of list) {
           if (!t || !t.id) continue
@@ -28,9 +30,11 @@ export class FileDB<T extends BaseDB> implements Crud<T> {
             requireCompact = true
           }
           if (!old || (t._v || 0) > (old._v || 0)) {
-            this.data.set(t.id, JSON.stringify(t))
+            this.data.set(t.id, JSON.stringify(t, null, 2))
           }
         }
+        console.log('loaded', this.data.size)
+        this.onReady()
         if (requireCompact) {
           this.compact()
         }
@@ -54,18 +58,22 @@ export class FileDB<T extends BaseDB> implements Crud<T> {
     return s ? JSON.parse(s) : null
   }
 
-  upsert(t: T): string {
-    const old = this.getById(t.id)
-    if (old && t._v !== old._v) {
-      throw new Error('version conflict')
-    }
-
-    t._v = (old?._v || 0) + 1
-    const line = JSON.stringify(t, null, 2)
-    lock.acquire(this.filePath, (done) => {
-      this.data.set(t.id, line)
-      fs.appendFile(this.filePath, ',' + line, done)
+  upsert(t: T): Promise<BaseDB> {
+    return new Promise<BaseDB>((res, rej) => {
+      const old = this.getById(t.id)
+      lock.acquire(this.filePath, (done) => {
+        if (old && t._v !== old._v) {
+          rej(`version conflict id: ${t.id}, old: ${old._v}, new: ${t._v}`)
+        }
+        const _v = (old?._v || 0) + 1
+        const line = JSON.stringify({ ...t, _v }, null, 2)
+        const empty = this.data.size === 0
+        this.data.set(t.id, line)
+        fs.appendFile(this.filePath, empty ? line : ',' + line, () => {
+          res({ id: t.id, _v })
+          done()
+        })
+      })
     })
-    return t.id
   }
 }

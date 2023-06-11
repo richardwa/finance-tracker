@@ -14,6 +14,9 @@ export const useInventoryStore = defineStore('inventory', () => {
     upsert: (t) =>
       fetch(`${endPoints.inventory}/${t.id}`, {
         method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify(t)
       }).then((r) => r.json())
   }
@@ -29,6 +32,9 @@ export const useInventoryStore = defineStore('inventory', () => {
     item.qty = 1
     item.date = format(new Date())
     store.value.push(item)
+    crud.upsert(item).then((updated) => {
+      Object.assign(item, updated)
+    })
     return item
   }
 
@@ -37,12 +43,21 @@ export const useInventoryStore = defineStore('inventory', () => {
     child.qty = 1
     child.date = format(new Date())
     parent._children[parent._children.length] = child
-    crud.upsert(parent)
+    crud.upsert(parent).then((updated) => {
+      Object.assign(parent, updated)
+    })
     return child
   }
 
   const save = (item: UIParentItem) => {
-    crud.upsert(item)
+    crud
+      .upsert(item)
+      .then((updated) => {
+        Object.assign(item, updated)
+      })
+      .catch((e) => {
+        console.warn('update rejected', e)
+      })
   }
 
   return {

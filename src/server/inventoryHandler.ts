@@ -1,4 +1,4 @@
-import type { Express, RequestHandler } from 'express'
+import type { Express } from 'express'
 
 import { InventoryDB } from './inventory-db'
 import type { UIParentItem } from '@/common/types'
@@ -20,8 +20,9 @@ export const useInventoryHandler = (app: Express, reqPath: string, dbpath: strin
   })
 
   app.put(`${reqPath}/:id`, (req, res) => {
-    const item = req.body as UIParentItem
-    inventoryDB.upsert(item)
-    res.status(200).json(item)
+    const item: UIParentItem = req.body
+    inventoryDB.upsert(item).then((b) => {
+      res.status(200).json(b)
+    })
   })
 }

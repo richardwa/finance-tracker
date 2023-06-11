@@ -38,5 +38,5 @@ export type Crud<T> = {
 export type AsyncCrud<T> = {
   getAll: () => Promise<T[]>
   getById: (id: string) => Promise<T | undefined>
-  upsert: (t: T) => Promise<void>
+  upsert: (t: T) => Promise<{ _v: number }>
 }

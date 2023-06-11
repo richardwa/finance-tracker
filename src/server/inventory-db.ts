@@ -1,13 +1,17 @@
-import type { ChildItem, Crud, ParentItem, UIParentItem } from '@/common/types'
+import type { BaseDB, ChildItem, Crud, ParentItem, UIParentItem } from '@/common/types'
 import { FileDB } from './file-db'
-import { isEqual } from 'lodash/fp'
+import { groupBy, isEqual } from 'lodash/fp'
+import AsyncLock from 'async-lock'
+
+const lock = new AsyncLock({ timeout: 5000 })
 
 export class InventoryDB implements Crud<UIParentItem> {
   private db: FileDB<ChildItem | ParentItem>
   private cache = new Map<string, UIParentItem>()
   constructor(file: string) {
-    this.db = new FileDB(file)
-    this.load()
+    this.db = new FileDB(file, () => {
+      this.load()
+    })
   }
 
   private load() {
@@ -42,16 +46,48 @@ export class InventoryDB implements Crud<UIParentItem> {
     return this.cache.get(id)
   }
 
-  upsert(t: UIParentItem): void {
-    const { _children, ...item } = t
-    _children.forEach((c) => {
-      if (!isEqual(this.cache.get(c.id), c)) {
-        this.db.upsert(c)
+  upsert(t: UIParentItem): Promise<UIParentItem> {
+    return new Promise((res, rej) => {
+      const old = this.cache.get(t.id)
+      this.cache.set(t.id, t)
+      if (!old) {
+        this.db.upsert(t).then((b) => {
+          Object.assign(t, b)
+          res(t)
+        })
+        return
       }
+
+      lock.acquire(t.id, (done) => {
+        const { _children, ...item } = t
+        const oldChildren = groupBy('id', old._children)
+        const promises: Promise<BaseDB>[] = []
+        _children.forEach((c) => {
+          const oldChild = oldChildren[c.id]
+          if (!oldChild || !oldChild[0] || !isEqual(oldChild[0], c)) {
+            promises.push(
+              this.db.upsert(c).then((b) => {
+                Object.assign(c, b)
+                return b
+              })
+            )
+          }
+        })
+        const parentItem: ParentItem = { ...item, _children: _children.map((c) => c.id) }
+        this.cache.set(t.id, t)
+        promises.push(
+          this.db.upsert(parentItem).then((b) => {
+            console.log('updated', b)
+            Object.assign(t, b)
+            return b
+          })
+        )
+
+        Promise.all(promises).then(() => {
+          done()
+          res(t)
+        })
+      })
     })
-    const parentItem: ParentItem = { ...item, _children: _children.map((c) => c.id) }
-    const id = this.db.upsert(parentItem)
-    t._v = parentItem._v
-    this.cache.set(id, t)
   }
 }

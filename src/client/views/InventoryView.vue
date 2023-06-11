@@ -219,6 +219,12 @@ onMounted(() => {
       dataTreeStartExpanded: false,
       dataTreeCollapseElement: `<span class="${style.treeCollapse}">▽</span>`,
       dataTreeExpandElement: `<span class="${style.treeExpand}">▷</span>`,
+      rowFormatter: (row) => {
+        const children = row.getData()._children
+        if (children && children.length === 0) {
+          row.getElement().classList.add(style.nochildren)
+        }
+      },
       selectable: false,
       columns: columns(),
       rowContextMenu: [
@@ -294,6 +300,10 @@ onMounted(() => {
 <style module>
 .pad {
   padding: 1rem;
+}
+.nochildren .treeCollapse,
+.nochildren .treeExpand {
+  visibility: hidden;
 }
 .treeCollapse {
   cursor: pointer;
