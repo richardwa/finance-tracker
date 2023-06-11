@@ -2,13 +2,12 @@
 import { RouterView } from 'vue-router'
 import { staticPaths } from './router'
 </script>
-
 <template>
   <nav :class="$style.nav">
     <RouterLink :class="$style.link" :to="staticPaths.inventory">
       <i class="fa fa-building-o" aria-hidden="true"></i>&nbsp;Inventory
     </RouterLink>
-    <RouterLink :class="$style.link" :to="/staticPaths.report">
+    <RouterLink :class="$style.link" :to="staticPaths.report">
       <i class="fa fa-line-chart" aria-hidden="true"></i>&nbsp;Report
     </RouterLink>
     <RouterLink :class="$style.link" :to="staticPaths.settings">

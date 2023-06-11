@@ -7,7 +7,12 @@ import path from 'path'
 import sha1 from 'sha1'
 import sharp from 'sharp'
 
-export const useUploadHandler = (app: Express, reqPath: string, folder: string) => {
+export const useUploadHandler = (
+  app: Express,
+  reqPath: string,
+  folder: string,
+  folderThumbs: string
+) => {
   // POST /upload - Handle file upload and generate thumbnail
   app.post(`${reqPath}/:name`, async (req: Request, res: Response) => {
     const fileData = req.body as string
@@ -24,7 +29,7 @@ export const useUploadHandler = (app: Express, reqPath: string, folder: string) 
     // Save the file to disk
     const fileName = `${shaName}.${ext}`
     const filePath = path.join(folder, fileName)
-    const thumbnailPath = path.join(folder, 'thumbs', fileName)
+    const thumbnailPath = path.join(folderThumbs, fileName)
     const done = () => {
       const r: UploadResponse = {
         fileName

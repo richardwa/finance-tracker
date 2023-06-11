@@ -7,23 +7,21 @@ const args = process.argv.slice(2)
 const port = args[0]
 const app = express()
 
-app.get(endPoints.hello, (req, res) => {
-  res.writeHead(200, { 'Content-Type': 'text/plain' })
-  res.end('Hello from server!!')
-})
-
-const clientJS = path.join(process.cwd(), 'build', 'client')
-const dbfile = path.join(process.cwd(), 'data', 'db', 'inventory.json')
-const uploads = path.join(process.cwd(), 'data', 'uploads')
+const clientPath = path.join(process.cwd(), 'build', 'client')
+const clientHandler = express.static(clientPath)
+const dataPath = path.join(process.cwd(), 'data')
+const dbfile = path.join(dataPath, 'db', 'inventory.json')
+const uploads = path.join(dataPath, 'uploads')
+const thumbs = path.join(uploads, 'thumbs')
 
 useInventoryHandler(app, endPoints.inventory, dbfile)
-useUploadHandler(app, endPoints.uploads, uploads)
+useUploadHandler(app, endPoints.uploads, uploads, thumbs)
 
 app.use((req, res, next) => {
   if (res.headersSent) {
     return next()
   }
-  express.static(clientJS)(req, res, next)
+  clientHandler(req, res, next)
 })
 
 app.listen(port, () => {

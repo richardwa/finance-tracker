@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { Item } from '@/client/stores/inventory-store'
 import { ref } from 'vue'
 import LightBoxVue from './LightBox.vue'
 import { getThumbUrl, getImageUrl } from '@/client/stores/file-service'
+import type { ChildItem, UIParentItem } from '@/common/types'
 
 defineProps<{
-  selected?: Item
+  selected?: UIParentItem | ChildItem
 }>()
 const emit = defineEmits(['file', 'delete'])
 const onFileChanged = (ev: Event) => {

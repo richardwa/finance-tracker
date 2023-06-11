@@ -21,12 +21,12 @@ ssh $targetHost "rm -rf $projectName && mkdir $projectName"
 $dockerfileContent = Get-Content -Path Dockerfile
 $copyPattern = '^\s*COPY\s+(?<source>.*?)\s+(?<destination>.*?)\s*$'
 $dockerfileContent | Where-Object { $_ -match $copyPattern } | ForEach-Object {
-    $source = $Matches['source']
-    $destination = $Matches['destination']
+  $source = $Matches['source']
+  $destination = $Matches['destination']
 
-    $target = Join-Path -Path $projectName -ChildPath $destination
-    $target = $target -replace '\\', '/'
-    scp -r $source "${targetHost}:~/$target" 
+  $target = Join-Path -Path $projectName -ChildPath $destination
+  $target = $target -replace '\\', '/'
+  scp -r $source "${targetHost}:~/$target" 
 }
 scp Dockerfile "${targetHost}:~/$projectName"
 
@@ -58,6 +58,7 @@ fi
 nohup docker run -d \
   -e TZ=America/New_York
   -p 8080:8080 \
+  -v ${projectName}:/app/data \
   --restart=unless-stopped \
   --name $projectName \
   $tag `&
