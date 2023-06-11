@@ -3,18 +3,22 @@ import express from 'express'
 import path from 'path'
 import { useInventoryHandler } from './inventoryHandler'
 import { useUploadHandler } from './uploadHandler'
+import { makeDirectoriesIfNotExist } from './util'
 const args = process.argv.slice(2)
 const port = args[0]
 
 const clientPath = path.join(process.cwd(), 'build', 'client')
 const dataPath = path.join(process.cwd(), 'data')
-const dbfile = path.join(dataPath, 'db', 'inventory.json')
+const dbPath = path.join(dataPath, 'db')
 const uploads = path.join(dataPath, 'uploads')
 const thumbs = path.join(uploads, 'thumbs')
 
+const paths = [clientPath, dataPath, dbPath, uploads, thumbs]
+paths.forEach(makeDirectoriesIfNotExist)
+
 const app = express()
 app.use(express.json())
-useInventoryHandler(app, endPoints.inventory, dbfile)
+useInventoryHandler(app, endPoints.inventory, path.join(dbPath, 'inventory.json'))
 
 app.use(express.raw({ type: '*/*', limit: '10mb' }))
 useUploadHandler(app, endPoints.uploads, uploads, thumbs)

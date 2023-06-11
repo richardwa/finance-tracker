@@ -34,6 +34,7 @@ const updateGrid = () => {
     summary.value = getMonthlyReport(rowData.filter((r) => getLastestDate(r) > monthsAgo))
     const filtered = filterValues(filter.value, rowData)
     grid.replaceData(filtered)
+    grid.rowManager.refreshActiveData('all')
   }
 }
 watch([filter, store], updateGrid)
@@ -242,7 +243,7 @@ onMounted(() => {
             } else {
               row.delete()
               inventoryStore.save(parent)
-              grid.updateData([parent])
+              parentRow.update(parent)
             }
           }
         }
