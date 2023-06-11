@@ -1,5 +1,5 @@
 import type { UIParentItem } from '@/common/types'
-import { groupBy } from 'lodash-es'
+import { groupBy } from 'lodash/fp'
 
 export const netIncome = (item: UIParentItem): number => {
   const hasChildren = item._children && item._children.length > 0
@@ -39,7 +39,7 @@ const getMetrics = (name: string, data: number[]): Summary => {
 
 export const getYearlyReport = (rowData: UIParentItem[]) => {
   const monthly = getMonthlyReport(rowData)
-  const summary = groupBy(monthly, (m) => m.name.substring(0, 4))
+  const summary = groupBy((m) => m.name.substring(0, 4), monthly)
   return Object.entries(summary).map(([key, val]) => {
     const data: number[] = []
     val.forEach((v) => {
@@ -51,7 +51,7 @@ export const getYearlyReport = (rowData: UIParentItem[]) => {
 }
 
 export const getMonthlyReport = (rowData: UIParentItem[]): Summary[] => {
-  const monthly = groupBy(rowData, (r) => getLastestDate(r).substring(0, 7))
+  const monthly = groupBy((r) => getLastestDate(r).substring(0, 7), rowData)
   return Object.entries(monthly).map(([key, group]) => {
     const data = group.map(netIncome)
     return getMetrics(key, data)

@@ -1,4 +1,4 @@
-import { uniqueId } from 'lodash-es'
+import { uniqueId } from 'lodash'
 import type { ChildItem, UIParentItem } from './types'
 
 export const createParentItem = (): UIParentItem => ({

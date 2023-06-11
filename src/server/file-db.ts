@@ -4,7 +4,7 @@ import type { BaseDB, Crud } from '@/common/types'
 
 const lock = new AsyncLock({ timeout: 5000 })
 
-export class FileDB<T extends BaseDB> implements Crud<T>{
+export class FileDB<T extends BaseDB> implements Crud<T> {
   private filePath: string
   private data = new Map<string, string>()
 
@@ -14,22 +14,27 @@ export class FileDB<T extends BaseDB> implements Crud<T>{
   }
 
   private loadData() {
-    fs.readFile(this.filePath, 'utf-8', (fileData) => {
-      const list = JSON.parse('[' + fileData + ']') as T[]
-      let requireCompact = false
-      for (const t of list) {
-        if (!t || !t.id) continue
-        const old = this.getById(t.id)
-        if (old) {
-          requireCompact = true
+    fs.access(this.filePath, (err) => {
+      // no file yet -- don't load
+      if (err) return
+
+      fs.readFile(this.filePath, 'utf-8', (fileData) => {
+        const list = JSON.parse('[' + fileData + ']') as T[]
+        let requireCompact = false
+        for (const t of list) {
+          if (!t || !t.id) continue
+          const old = this.getById(t.id)
+          if (old) {
+            requireCompact = true
+          }
+          if (!old || (t._v || 0) > (old._v || 0)) {
+            this.data.set(t.id, JSON.stringify(t))
+          }
         }
-        if (!old || (t._v || 0) > (old._v || 0)) {
-          this.data.set(t.id, JSON.stringify(t))
+        if (requireCompact) {
+          this.compact()
         }
-      }
-      if (requireCompact) {
-        this.compact()
-      }
+      })
     })
   }
 

@@ -1,6 +1,6 @@
 import type { ChildItem, Crud, ParentItem, UIParentItem } from '@/common/types'
 import { FileDB } from './file-db'
-import { isEqual } from 'lodash-es'
+import { isEqual } from 'lodash/fp'
 
 export class InventoryDB implements Crud<UIParentItem> {
   private db: FileDB<ChildItem | ParentItem>
