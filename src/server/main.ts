@@ -1,23 +1,31 @@
-import path from 'path'
-import http from 'http'
-import { serveFolder } from './fileserver'
 import { endPoints } from '@/common/config'
+import express from 'express'
+import path from 'path'
+import { useInventoryHandler } from './inventoryHandler'
+import { useUploadHandler } from './uploadHandler'
 const args = process.argv.slice(2)
 const port = args[0]
+const app = express()
+
+app.get(endPoints.hello, (req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain' })
+  res.end('Hello from server!!')
+})
 
 const clientJS = path.join(process.cwd(), 'build', 'client')
-const serveClientJS = serveFolder({ folder: clientJS })
+const dbfile = path.join(process.cwd(), 'data', 'db', 'inventory.json')
+const uploads = path.join(process.cwd(), 'data', 'uploads')
 
-const server = http.createServer((req, res) => {
-  if (req.url?.startsWith(endPoints.hello)) {
-    res.writeHead(200, { 'Content-Type': 'text/plain' })
-    res.end('Hello from server!!')
-    return
+useInventoryHandler(app, endPoints.inventory, dbfile)
+useUploadHandler(app, endPoints.uploads, uploads)
+
+app.use((req, res, next) => {
+  if (res.headersSent) {
+    return next()
   }
-
-  serveClientJS(req, res)
-  return
+  express.static(clientJS)(req, res, next)
 })
-server.listen(port, () => {
+
+app.listen(port, () => {
   console.log(`Server is running on port ${port}`)
 })

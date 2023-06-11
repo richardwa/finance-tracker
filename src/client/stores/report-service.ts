@@ -1,23 +1,23 @@
+import type { UIParentItem } from '@/common/types'
 import { groupBy } from 'lodash-es'
-import type { ParentItem } from './inventory-store'
 
-export const netIncome = (item: ParentItem) => {
+export const netIncome = (item: UIParentItem): number => {
   const hasChildren = item._children && item._children.length > 0
   if (item.source === 'expense' && !hasChildren) {
-    return item.price
+    return item.price || 0
   } else if (hasChildren) {
-    const sum = item._children.reduce((a, v) => a + v.price || 0, 0)
-    return item.price + sum
+    const sum = item._children.reduce((a, v) => a + (v.price || 0), 0)
+    return (item.price || 0) + sum
   } else {
     return NaN
   }
 }
 
-export const getLastestDate = (item: ParentItem) => {
-  let latest = item.date
+export const getLastestDate = (item: UIParentItem) => {
+  let latest = item.date || ''
   if (item._children) {
     for (const c of item._children) {
-      if (c.date > latest) {
+      if (c.date && c.date > latest) {
         latest = c.date
       }
     }
@@ -37,7 +37,7 @@ const getMetrics = (name: string, data: number[]): Summary => {
   return { name, data, sum }
 }
 
-export const getYearlyReport = (rowData: ParentItem[]) => {
+export const getYearlyReport = (rowData: UIParentItem[]) => {
   const monthly = getMonthlyReport(rowData)
   const summary = groupBy(monthly, (m) => m.name.substring(0, 4))
   return Object.entries(summary).map(([key, val]) => {
@@ -50,7 +50,7 @@ export const getYearlyReport = (rowData: ParentItem[]) => {
   })
 }
 
-export const getMonthlyReport = (rowData: ParentItem[]): Summary[] => {
+export const getMonthlyReport = (rowData: UIParentItem[]): Summary[] => {
   const monthly = groupBy(rowData, (r) => getLastestDate(r).substring(0, 7))
   return Object.entries(monthly).map(([key, group]) => {
     const data = group.map(netIncome)

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import ImageContainer from '@/client/components/ImageContainer.vue'
 import { saveImage } from '@/client/stores/file-service'
-import { useInventoryStore, type Item, type ParentItem } from '@/client/stores/inventory-store'
 import {
   getLastestDate,
   getMonthlyReport,
@@ -13,6 +12,8 @@ import { storeToRefs } from 'pinia'
 import type { CellComponent, ColumnDefinition, RowComponent } from 'tabulator-tables'
 import { TabulatorFull as Tabulator } from 'tabulator-tables'
 import { onMounted, ref, watch, useCssModule, onUnmounted } from 'vue'
+import type { UIParentItem, ChildItem } from '@/common/types'
+import { useInventoryStore } from '@/client/stores/inventory-store'
 const inventoryStore = useInventoryStore()
 
 const style = useCssModule()
@@ -20,7 +21,7 @@ const { store } = storeToRefs(inventoryStore)
 const gridRef = ref<HTMLElement | null>(null)
 let grid: Tabulator
 const filter = ref<string>('')
-const selected = ref<{ item: Item | ParentItem; parent: ParentItem }>()
+const selected = ref<{ item: ChildItem | UIParentItem; parent: UIParentItem }>()
 const summary = ref<Summary[]>([])
 
 const updateGrid = () => {
@@ -67,15 +68,15 @@ const columns = (): ColumnDefinition[] =>
         },
         headerSort: false,
         formatter: (cell, _params) => {
-          const item = cell.getData() as ParentItem | Item
-          if ('page' in item) {
+          const item = cell.getData() as UIParentItem | ChildItem
+          if ('_children' in item) {
             return `<button class="${style.button}">+Sell</button>`
           }
           return ''
         },
         cellClick: (_ev, cell) => {
-          const item = cell.getData() as ParentItem | Item
-          if ('page' in item) {
+          const item = cell.getData() as UIParentItem | ChildItem
+          if ('_children' in item) {
             inventoryStore.addChildTo(item)
             grid?.updateData([item])
           }
@@ -94,7 +95,7 @@ const columns = (): ColumnDefinition[] =>
           precision: 2
         },
         mutator: (value: any, data: any) => {
-          return 'page' in data && value ? Math.abs(value) * -1 : value
+          return '_children' in data && value ? Math.abs(value) * -1 : value
         },
         cellEdited: (cell) => {
           const row = cell.getRow()
@@ -109,8 +110,8 @@ const columns = (): ColumnDefinition[] =>
         hozAlign: 'right',
         sorter: 'number',
         mutator: (value, data, type, params, cell) => {
-          const item = data as ParentItem | Item
-          if ('page' in item) {
+          const item = data as UIParentItem | ChildItem
+          if ('_children' in item) {
             const net = netIncome(item)
             return isNaN(net) ? '' : net.toFixed(2)
           }
@@ -122,8 +123,8 @@ const columns = (): ColumnDefinition[] =>
         width: '10rem',
         editor: 'date',
         sorter: (a, b, aRow, bRow, column, dir, sorterParams) => {
-          const d1 = getLastestDate(aRow.getData() as ParentItem)
-          const d2 = getLastestDate(bRow.getData() as ParentItem)
+          const d1 = getLastestDate(aRow.getData() as UIParentItem)
+          const d2 = getLastestDate(bRow.getData() as UIParentItem)
           return d1.localeCompare(d2)
         },
         editorParams: {
@@ -180,7 +181,7 @@ const processDelete = (file: string) => {
     item.images.splice(i, 1)
     const parent = '_children' in item ? item : store.value.find((p) => p._children.includes(item))
     if (parent) {
-      inventoryStore.save([parent])
+      inventoryStore.save(parent)
       updateGrid()
     } else {
       console.error('unable to find parent data')
@@ -199,7 +200,7 @@ const processFiles = async (...s: File[]) => {
     item.images = [...item.images, ...n]
     const parent = '_children' in item ? item : store.value.find((p) => p._children.includes(item))
     if (parent) {
-      inventoryStore.save([parent])
+      inventoryStore.save(parent)
       updateGrid()
     } else {
       console.error('unable to find parent data')
@@ -227,14 +228,14 @@ onMounted(() => {
             selected.value = undefined
             grid.deselectRow()
             const parentRow = row.getTreeParent() || row
-            const parent = parentRow.getData() as ParentItem
+            const parent = parentRow.getData() as UIParentItem
             if (row === parentRow) {
               parent.deleted = true
-              inventoryStore.save([parent])
+              inventoryStore.save(parent)
               updateGrid()
             } else {
               row.delete()
-              inventoryStore.save([parent])
+              inventoryStore.save(parent)
               grid.updateData([parent])
             }
           }
@@ -244,13 +245,13 @@ onMounted(() => {
 
     let currentEditingCell: CellComponent
     _grid.on('rowClick', (e: Event, row: RowComponent) => {
-      const item = row.getData() as Item
+      const item = row.getData() as ChildItem
       const parent = (row.getTreeParent() || row).getData()
       selected.value = { item, parent }
     })
     _grid.on('rowContext', (e: Event, row: RowComponent) => {
       currentEditingCell?.cancelEdit()
-      const item = row.getData() as Item
+      const item = row.getData() as ChildItem
       const parent = (row.getTreeParent() || row).getData()
       selected.value = { item, parent }
     })
@@ -264,7 +265,7 @@ onMounted(() => {
         const parentRow = row.getTreeParent() || row
         if (parentRow) {
           const parent = parentRow.getData()
-          inventoryStore.save([parent])
+          inventoryStore.save(parent)
         }
       }
     })

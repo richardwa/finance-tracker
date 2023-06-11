@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
+import { staticPaths } from './router'
 </script>
 
 <template>
   <nav :class="$style.nav">
-    <RouterLink :class="$style.link" to="/inventory">
+    <RouterLink :class="$style.link" :to="staticPaths.inventory">
       <i class="fa fa-building-o" aria-hidden="true"></i>&nbsp;Inventory
     </RouterLink>
-    <RouterLink :class="$style.link" to="/inventoryreport">
+    <RouterLink :class="$style.link" :to="/staticPaths.report">
       <i class="fa fa-line-chart" aria-hidden="true"></i>&nbsp;Report
     </RouterLink>
-    <RouterLink :class="$style.link" to="/settings">
+    <RouterLink :class="$style.link" :to="staticPaths.settings">
       <i class="fa fa-cog" aria-hidden="true"></i>&nbsp;Settings
     </RouterLink>
   </nav>
@@ -35,7 +36,4 @@ import { RouterView } from 'vue-router'
   justify-content: center;
   border-right: 1px solid gray;
 }
-</style>
-<style>
-
 </style>

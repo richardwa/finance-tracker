@@ -1,62 +1,48 @@
+import { format } from '@/client/util'
+import { endPoints } from '@/common/config'
+import { createChildItem, createParentItem } from '@/common/item-gen'
+import type { AsyncCrud, UIParentItem } from '@/common/types'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { PersistanceCollection, type PageKey } from '@/client/stores/persistance-collection'
-import { v4 as uuidv4 } from 'uuid'
-import { format } from '@/client/util'
-
-export type Item = Pick<PageKey, 'id'> & {
-  date: string
-  qty: number
-  price: number
-  source: string
-  title: string
-  notes: string
-  images: string[]
-}
-export type ParentItem = PageKey &
-  Item & {
-    deleted: boolean
-    _children: Item[]
-  }
-
-type InventoryStore = ParentItem[]
-
-const collection = new PersistanceCollection<ParentItem>('inventory')
 
 export const useInventoryStore = defineStore('inventory', () => {
-  const store = ref<InventoryStore>([])
+  const store = ref<UIParentItem[]>([])
+
+  const crud: AsyncCrud<UIParentItem> = {
+    getAll: () => fetch(endPoints.inventory).then((r) => r.json()),
+    getById: (id) => fetch(`${endPoints.inventory}/${id}`).then((r) => r.json()),
+    upsert: (t) =>
+      fetch(`${endPoints.inventory}/${t.id}`, {
+        method: 'PUT',
+        body: JSON.stringify(t)
+      }).then((r) => r.json())
+  }
 
   const fetchInventory = async () => {
-    const list = await collection.listAll()
+    const list: UIParentItem[] = await crud.getAll()
     store.value = list.filter((p) => !p.deleted)
   }
   fetchInventory()
 
   const addRow = () => {
-    const item = collection.createNew()
+    const item = createParentItem()
     item.qty = 1
-    item.date = new Date().toLocaleDateString('en-CA')
+    item.date = format(new Date())
     store.value.push(item)
-    collection.save([item])
     return item
   }
 
-  const addChildTo = (parent: ParentItem) => {
-    const child = {
-      id: uuidv4()
-    } as Item
+  const addChildTo = (parent: UIParentItem) => {
+    const child = createChildItem()
     child.qty = 1
     child.date = format(new Date())
-    if (!parent._children) {
-      parent._children = []
-    }
     parent._children[parent._children.length] = child
-    collection.save([parent])
+    crud.upsert(parent)
     return child
   }
 
-  const save = (items: ParentItem[]) => {
-    collection.save(items)
+  const save = (item: UIParentItem) => {
+    crud.upsert(item)
   }
 
   return {
