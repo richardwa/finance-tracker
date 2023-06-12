@@ -20,7 +20,7 @@ const dbPath = path.join(dataPath, 'db')
 const uploads = path.join(dataPath, 'uploads')
 const thumbs = path.join(uploads, 'thumbs')
 
-const paths = [clientPath, dataPath, dbPath, uploads, thumbs]
+const paths = [dataPath, dbPath, uploads, thumbs]
 paths.forEach((p) => {
   console.log('path', p)
   makeDirectoriesIfNotExist(p)
