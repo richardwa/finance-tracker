@@ -56,7 +56,7 @@ else
 fi
 
 nohup docker run -d \
-  -e TZ=America/New_York
+  -e TZ=America/New_York \
   -p 8080:8080 \
   -v ${projectName}:/app/data \
   --restart=unless-stopped \
