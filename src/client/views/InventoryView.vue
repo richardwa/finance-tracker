@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import ImageContainer from '@/client/components/ImageContainer.vue'
-import { saveImage } from '@/client/stores/file-service'
+import { saveFile, saveImage } from '@/client/stores/file-service'
 import {
   getLastestDate,
   getMonthlyReport,
@@ -192,7 +192,7 @@ const processDelete = (file: string) => {
 }
 
 const processFiles = async (...s: File[]) => {
-  console.log('got file')
+  console.log('got files', s)
   const n = await saveImage(...s)
   if (grid && selected.value) {
     const item = selected.value.item
