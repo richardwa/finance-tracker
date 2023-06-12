@@ -10,7 +10,9 @@ RUN npm ci --omit=dev && npm cache clean --force
 
 
 # Expose the specified port
-EXPOSE 8080
+EXPOSE 8085
+ARG USER_ID=1002
+RUN useradd --uid ${USER_ID} --create-home fintrack2
 
-USER 1002
-CMD ["node","./build/server/main.js", "8080"]
+USER fintrack2
+CMD ["node","./build/server/main.js", "8085"]
