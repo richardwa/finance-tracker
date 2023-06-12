@@ -1,5 +1,5 @@
 {
-  "name": "vue-server-template",
+  "name": "finance-tracker",
   "version": "0.1",
   "scripts": {
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
