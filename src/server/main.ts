@@ -21,7 +21,10 @@ const uploads = path.join(dataPath, 'uploads')
 const thumbs = path.join(uploads, 'thumbs')
 
 const paths = [clientPath, dataPath, dbPath, uploads, thumbs]
-paths.forEach(makeDirectoriesIfNotExist)
+paths.forEach((p) => {
+  console.log('path', p)
+  makeDirectoriesIfNotExist(p)
+})
 
 const app = express()
 app.use(express.json())
