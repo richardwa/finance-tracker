@@ -3,7 +3,6 @@ import express from 'express'
 import path from 'path'
 import { useInventoryHandler } from './inventoryHandler'
 import { useUploadHandler } from './uploadHandler'
-import { makeDirectoriesIfNotExist } from './util'
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise)
@@ -19,12 +18,6 @@ const dataPath = path.join(process.cwd(), 'data')
 const dbPath = path.join(dataPath, 'db')
 const uploads = path.join(dataPath, 'uploads')
 const thumbs = path.join(uploads, 'thumbs')
-
-const paths = [dataPath, dbPath, uploads, thumbs]
-paths.forEach((p) => {
-  console.log('path', p)
-  makeDirectoriesIfNotExist(p)
-})
 
 const app = express()
 app.use(express.json())
