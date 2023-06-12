@@ -78,8 +78,9 @@ const columns = (): ColumnDefinition[] =>
         cellClick: (_ev, cell) => {
           const item = cell.getData() as UIParentItem | ChildItem
           if ('_children' in item) {
-            inventoryStore.addChildTo(item)
-            grid?.updateData([item])
+            inventoryStore.addChildTo(item).then(() => {
+              cell.getRow().update(item)
+            })
           }
         }
       },
@@ -101,7 +102,7 @@ const columns = (): ColumnDefinition[] =>
         cellEdited: (cell) => {
           const row = cell.getRow()
           const parent = row.getTreeParent() || row
-          grid.updateData([parent.getData()])
+          parent.update({})
         }
       },
       {
@@ -224,6 +225,8 @@ onMounted(() => {
         const children = row.getData()._children
         if (children && children.length === 0) {
           row.getElement().classList.add(style.nochildren)
+        } else {
+          row.getElement().classList.remove(style.nochildren)
         }
       },
       selectable: false,
@@ -238,10 +241,13 @@ onMounted(() => {
             const parent = parentRow.getData() as UIParentItem
             if (row === parentRow) {
               parent.deleted = true
-              inventoryStore.save(parent)
-              updateGrid()
+              inventoryStore.save(parent).then(() => {
+                row.delete()
+              })
             } else {
-              row.delete()
+              const data = row.getData()
+              const find = parent._children.indexOf(data)
+              parent._children.splice(find, 1)
               inventoryStore.save(parent)
               parentRow.update(parent)
             }
@@ -270,10 +276,10 @@ onMounted(() => {
       if (params.getValue() != params.getOldValue()) {
         const row = params.getRow()
         const parentRow = row.getTreeParent() || row
-        if (parentRow) {
-          const parent = parentRow.getData()
-          inventoryStore.save(parent)
-        }
+        const item = parentRow.getData() as UIParentItem
+        inventoryStore.save(item).then(() => {
+          parentRow.update(item)
+        })
       }
     })
 

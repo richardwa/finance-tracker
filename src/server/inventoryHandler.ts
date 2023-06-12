@@ -1,17 +1,17 @@
 import type { Express } from 'express'
 
-import { InventoryDB } from './inventory-db'
+import { FileDB } from './file-db'
 import type { UIParentItem } from '@/common/types'
 
 export const useInventoryHandler = (app: Express, reqPath: string, dbpath: string) => {
-  const inventoryDB = new InventoryDB(dbpath)
+  const inventory = new FileDB<UIParentItem>(dbpath, () => {})
 
   app.get(reqPath, (req, res) => {
-    res.json(inventoryDB.getAll())
+    res.json(inventory.getAll())
   })
 
   app.get(`${reqPath}/:id`, (req, res) => {
-    const item = inventoryDB.getById(req.params.id)
+    const item = inventory.getById(req.params.id)
     if (item) {
       res.json(item)
     } else {
@@ -21,7 +21,7 @@ export const useInventoryHandler = (app: Express, reqPath: string, dbpath: strin
 
   app.put(`${reqPath}/:id`, (req, res) => {
     const item: UIParentItem = req.body
-    inventoryDB.upsert(item).then((b) => {
+    inventory.upsert(item).then((b) => {
       res.status(200).json(b)
     })
   })

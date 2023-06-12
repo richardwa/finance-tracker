@@ -9,7 +9,5 @@ export const createParentItem = (): UIParentItem => ({
 })
 
 export const createChildItem = (): ChildItem => ({
-  id: v4(),
-  _v: 0,
   images: []
 })

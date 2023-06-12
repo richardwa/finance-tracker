@@ -24,6 +24,10 @@ export const router = createRouter({
       path: staticPaths.settings,
       name: 'settings',
       component: () => import('@/client/views/SettingsView.vue')
+    },
+    {
+      path: '/:catchAll(.*)',
+      redirect: staticPaths.inventory
     }
   ]
 })

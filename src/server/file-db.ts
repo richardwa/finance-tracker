@@ -70,7 +70,9 @@ export class FileDB<T extends BaseDB> implements Crud<T> {
         const empty = this.data.size === 0
         this.data.set(t.id, line)
         fs.appendFile(this.filePath, empty ? line : ',' + line, () => {
-          res({ id: t.id, _v })
+          const base = { id: t.id, _v }
+          res(base)
+          console.log('updated', base)
           done()
         })
       })

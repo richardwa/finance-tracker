@@ -18,7 +18,12 @@ export const useInventoryStore = defineStore('inventory', () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(t)
-      }).then((r) => r.json())
+      }).then((r) => {
+        if (r.status === 200) {
+          return r.json()
+        }
+        throw new Error(r.statusText)
+      })
   }
 
   const fetchInventory = async () => {
@@ -38,18 +43,18 @@ export const useInventoryStore = defineStore('inventory', () => {
     return item
   }
 
-  const addChildTo = (parent: UIParentItem) => {
+  const addChildTo = async (parent: UIParentItem): Promise<void> => {
     const child = createChildItem()
     child.qty = 1
     child.date = format(new Date())
-    parent._children[parent._children.length] = child
-    crud.upsert(parent).then((updated) => {
-      Object.assign(parent, updated)
-    })
-    return child
+    const children = parent._children || []
+    parent._children = children
+    children.push(child)
+    const updated = await crud.upsert(parent)
+    Object.assign(parent, updated)
   }
 
-  const save = (item: UIParentItem) => {
+  const save = (item: UIParentItem) =>
     crud
       .upsert(item)
       .then((updated) => {
@@ -58,7 +63,6 @@ export const useInventoryStore = defineStore('inventory', () => {
       .catch((e) => {
         console.warn('update rejected', e)
       })
-  }
 
   return {
     store,

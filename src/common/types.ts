@@ -3,7 +3,7 @@ export type BaseDB = {
   _v?: number
 }
 
-export type ChildItem = BaseDB & {
+export type ChildItem = {
   date?: string
   qty?: number
   price?: number
@@ -13,17 +13,11 @@ export type ChildItem = BaseDB & {
   images: string[]
 }
 
-export type ParentItem = ChildItem & {
-  _children: string[]
-  deleted?: boolean
-}
-
-export type UIParentItem = ChildItem & {
-  _children: ChildItem[]
-  deleted?: boolean
-}
-
-export type Item = ParentItem | ChildItem
+export type UIParentItem = BaseDB &
+  ChildItem & {
+    _children: ChildItem[]
+    deleted?: boolean
+  }
 
 export type UploadResponse = {
   fileName: string
