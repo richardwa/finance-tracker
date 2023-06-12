@@ -12,7 +12,7 @@ import { storeToRefs } from 'pinia'
 import type { CellComponent, ColumnDefinition, RowComponent } from 'tabulator-tables'
 import { TabulatorFull as Tabulator } from 'tabulator-tables'
 import { onMounted, ref, watch, useCssModule, onUnmounted } from 'vue'
-import type { UIParentItem, ChildItem } from '@/common/types'
+import type { ParentItem, ChildItem } from '@/common/types'
 import { useInventoryStore } from '@/client/stores/inventory-store'
 const inventoryStore = useInventoryStore()
 
@@ -21,7 +21,7 @@ const { store } = storeToRefs(inventoryStore)
 const gridRef = ref<HTMLElement | null>(null)
 let grid: Tabulator
 const filter = ref<string>('')
-const selected = ref<{ item: ChildItem | UIParentItem; parent: UIParentItem }>()
+const selected = ref<{ item: ChildItem | ParentItem; parent: ParentItem }>()
 const summary = ref<Summary[]>([])
 
 const updateGrid = () => {
@@ -69,14 +69,14 @@ const columns = (): ColumnDefinition[] =>
         },
         headerSort: false,
         formatter: (cell, _params) => {
-          const item = cell.getData() as UIParentItem | ChildItem
+          const item = cell.getData() as ParentItem | ChildItem
           if ('_children' in item) {
             return `<button class="${style.button}">+Sell</button>`
           }
           return ''
         },
         cellClick: (_ev, cell) => {
-          const item = cell.getData() as UIParentItem | ChildItem
+          const item = cell.getData() as ParentItem | ChildItem
           if ('_children' in item) {
             inventoryStore.addChildTo(item).then(() => {
               cell.getRow().update(item)
@@ -112,7 +112,7 @@ const columns = (): ColumnDefinition[] =>
         hozAlign: 'right',
         sorter: 'number',
         mutator: (value, data, type, params, cell) => {
-          const item = data as UIParentItem | ChildItem
+          const item = data as ParentItem | ChildItem
           if ('_children' in item) {
             const net = netIncome(item)
             return isNaN(net) ? '' : net.toFixed(2)
@@ -125,8 +125,8 @@ const columns = (): ColumnDefinition[] =>
         width: '10rem',
         editor: 'date',
         sorter: (a, b, aRow, bRow, column, dir, sorterParams) => {
-          const d1 = getLastestDate(aRow.getData() as UIParentItem)
-          const d2 = getLastestDate(bRow.getData() as UIParentItem)
+          const d1 = getLastestDate(aRow.getData() as ParentItem)
+          const d2 = getLastestDate(bRow.getData() as ParentItem)
           return d1.localeCompare(d2)
         },
         editorParams: {
@@ -238,7 +238,7 @@ onMounted(() => {
             selected.value = undefined
             grid.deselectRow()
             const parentRow = row.getTreeParent() || row
-            const parent = parentRow.getData() as UIParentItem
+            const parent = parentRow.getData() as ParentItem
             if (row === parentRow) {
               parent.deleted = true
               inventoryStore.save(parent).then(() => {
@@ -276,10 +276,8 @@ onMounted(() => {
       if (params.getValue() != params.getOldValue()) {
         const row = params.getRow()
         const parentRow = row.getTreeParent() || row
-        const item = parentRow.getData() as UIParentItem
-        inventoryStore.save(item).then(() => {
-          parentRow.update(item)
-        })
+        const item = parentRow.getData() as ParentItem
+        inventoryStore.save(item)
       }
     })
 

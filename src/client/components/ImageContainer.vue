@@ -2,10 +2,10 @@
 import { ref } from 'vue'
 import LightBoxVue from './LightBox.vue'
 import { getThumbUrl, getImageUrl } from '@/client/stores/file-service'
-import type { ChildItem, UIParentItem } from '@/common/types'
+import type { ChildItem, ParentItem } from '@/common/types'
 
 defineProps<{
-  selected?: UIParentItem | ChildItem
+  selected?: ParentItem | ChildItem
 }>()
 const emit = defineEmits(['file', 'delete'])
 const onFileChanged = (ev: Event) => {

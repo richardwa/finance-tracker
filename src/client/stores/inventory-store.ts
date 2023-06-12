@@ -1,14 +1,14 @@
 import { format } from '@/client/util'
 import { endPoints } from '@/common/config'
 import { createChildItem, createParentItem } from '@/common/item-gen'
-import type { AsyncCrud, UIParentItem } from '@/common/types'
+import type { AsyncCrud, ParentItem } from '@/common/types'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 export const useInventoryStore = defineStore('inventory', () => {
-  const store = ref<UIParentItem[]>([])
+  const store = ref<ParentItem[]>([])
 
-  const crud: AsyncCrud<UIParentItem> = {
+  const crud: AsyncCrud<ParentItem> = {
     getAll: () => fetch(endPoints.inventory).then((r) => r.json()),
     getById: (id) => fetch(`${endPoints.inventory}/${id}`).then((r) => r.json()),
     upsert: (t) =>
@@ -27,7 +27,7 @@ export const useInventoryStore = defineStore('inventory', () => {
   }
 
   const fetchInventory = async () => {
-    const list: UIParentItem[] = await crud.getAll()
+    const list: ParentItem[] = await crud.getAll()
     store.value = list.filter((p) => !p.deleted)
   }
   fetchInventory()
@@ -43,7 +43,7 @@ export const useInventoryStore = defineStore('inventory', () => {
     return item
   }
 
-  const addChildTo = async (parent: UIParentItem): Promise<void> => {
+  const addChildTo = async (parent: ParentItem): Promise<void> => {
     const child = createChildItem()
     child.qty = 1
     child.date = format(new Date())
@@ -54,7 +54,7 @@ export const useInventoryStore = defineStore('inventory', () => {
     Object.assign(parent, updated)
   }
 
-  const save = (item: UIParentItem) =>
+  const save = (item: ParentItem) =>
     crud
       .upsert(item)
       .then((updated) => {

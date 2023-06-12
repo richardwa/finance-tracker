@@ -1,6 +1,6 @@
-import type { UIParentItem } from '@/common/types'
+import type { ParentItem } from '@/common/types'
 
-export const filterValues = <T extends UIParentItem>(term: string, list: T[]) => {
+export const filterValues = <T extends ParentItem>(term: string, list: T[]) => {
   if (!term || term === '') {
     return list
   }

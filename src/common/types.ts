@@ -13,7 +13,7 @@ export type ChildItem = {
   images: string[]
 }
 
-export type UIParentItem = BaseDB &
+export type ParentItem = BaseDB &
   ChildItem & {
     _children: ChildItem[]
     deleted?: boolean
