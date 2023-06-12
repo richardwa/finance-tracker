@@ -13,7 +13,11 @@ export function makeDirectoriesIfNotExist(dirPath: string): void {
   directories.forEach((directory) => {
     currentPath = path.join(currentPath, directory)
     if (!fs.existsSync(currentPath)) {
-      fs.mkdirSync(currentPath)
+      try {
+        fs.mkdirSync(currentPath)
+      } catch (e) {
+        console.log(e)
+      }
     }
   })
 }
