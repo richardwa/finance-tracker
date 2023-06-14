@@ -17,7 +17,7 @@ const port = args[0]
 
 const clientPath = path.join(process.cwd(), 'build', 'client')
 const dataPath = path.join(process.cwd(), 'data')
-const dbPath = path.join(dataPath, 'db', 'inventory')
+const inventoryCollection = path.join(dataPath, 'db', 'inventory')
 const uploads = path.join(dataPath, 'uploads')
 const thumbs = path.join(uploads, 'thumbs')
 
@@ -30,7 +30,7 @@ const onReady = () => {
 app.use(express.json())
 
 const inventory = new FileDB<ParentItem>({
-  filePath: dbPath,
+  filePath: inventoryCollection,
   onReady,
   groupBy: (p) => p.date?.substring(0, 7) || 'null'
 })
