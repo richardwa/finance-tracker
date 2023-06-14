@@ -3,6 +3,8 @@ import express from 'express'
 import path from 'path'
 import { useInventoryHandler } from './inventoryHandler'
 import { useUploadHandler } from './uploadHandler'
+import { FileDB } from './file-db'
+import type { ParentItem } from '@/common/types'
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise)
@@ -15,13 +17,24 @@ const port = args[0]
 
 const clientPath = path.join(process.cwd(), 'build', 'client')
 const dataPath = path.join(process.cwd(), 'data')
-const dbPath = path.join(dataPath, 'db')
+const dbPath = path.join(dataPath, 'db', 'inventory')
 const uploads = path.join(dataPath, 'uploads')
 const thumbs = path.join(uploads, 'thumbs')
 
 const app = express()
+const onReady = () => {
+  app.listen(port, () => {
+    console.log(`Server is running on port ${port}`)
+  })
+}
 app.use(express.json())
-useInventoryHandler(app, endPoints.inventory, path.join(dbPath, 'inventory.json'))
+
+const inventory = new FileDB<ParentItem>({
+  filePath: dbPath,
+  onReady,
+  groupBy: (p) => p.date?.substring(0, 7) || 'null'
+})
+useInventoryHandler(app, endPoints.inventory, inventory)
 
 app.use(express.raw({ type: '*/*', limit: '10mb' }))
 useUploadHandler(app, endPoints.uploads, uploads, thumbs)
@@ -32,8 +45,4 @@ app.use((req, res, next) => {
     return next()
   }
   clientHandler(req, res, next)
-})
-
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`)
 })

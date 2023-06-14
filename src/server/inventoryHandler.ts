@@ -3,9 +3,11 @@ import type { Express } from 'express'
 import { FileDB } from './file-db'
 import type { ParentItem } from '@/common/types'
 
-export const useInventoryHandler = (app: Express, reqPath: string, dbpath: string) => {
-  const inventory = new FileDB<ParentItem>(dbpath, () => {})
-
+export const useInventoryHandler = (
+  app: Express,
+  reqPath: string,
+  inventory: FileDB<ParentItem>
+) => {
   app.get(reqPath, (req, res) => {
     res.json(inventory.getAll())
   })
