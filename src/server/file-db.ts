@@ -3,9 +3,7 @@ import AsyncLock from 'async-lock'
 import { filter, groupBy, map } from 'lodash/fp'
 import path from 'path'
 import sha1 from 'sha1'
-import { deleteFile, listDirectory, readFileContents, writeFileIfNotExists } from './util'
-
-const lock = new AsyncLock({ timeout: 5000 })
+import { promises as fs } from 'fs'
 
 export type FileDBConfig<T> = {
   filePath: string
@@ -13,6 +11,8 @@ export type FileDBConfig<T> = {
   groupBy: (t: T) => string
 }
 
+const lock = new AsyncLock({ timeout: 5000 })
+const stringify = (o: object) => JSON.stringify(o, null, 2)
 export class FileDB<T extends BaseDB> implements Crud<T> {
   private folder: string
   // we cache our objects in string form to ensure immutability
@@ -29,13 +29,14 @@ export class FileDB<T extends BaseDB> implements Crud<T> {
   }
 
   private async loadData() {
-    const files = await listDirectory(this.folder)
-      .then(filter((f) => f.type === 'file'))
+    const files = await fs
+      .readdir(this.folder, { withFileTypes: true })
+      .then(filter((f) => f.isFile()))
       .then(map((f) => f.name))
     let requireCompact = false
     const loading = files.map(async (f) => {
       this.loadedFiles.add(f)
-      const contents = await readFileContents(path.join(this.folder, f))
+      const contents = await fs.readFile(path.join(this.folder, f), { encoding: 'utf-8' })
       const list = JSON.parse(contents) as T[]
       for (const t of list) {
         if (!t || !t.id) continue
@@ -44,7 +45,7 @@ export class FileDB<T extends BaseDB> implements Crud<T> {
           requireCompact = true
         }
         if (!old || (t._v || 0) > (old._v || 0)) {
-          this.data.set(t.id, JSON.stringify(t, null, 2))
+          this.data.set(t.id, stringify(t))
         }
       }
     })
@@ -58,7 +59,7 @@ export class FileDB<T extends BaseDB> implements Crud<T> {
   }
 
   private compact() {
-    console.log('perform compacting')
+    console.log('compacting')
     lock.acquire(this.folder, (done) => {
       type Pair = [T, string]
       const datas = Array.from(this.data.values(), (s) => [JSON.parse(s), s] as Pair)
@@ -69,16 +70,25 @@ export class FileDB<T extends BaseDB> implements Crud<T> {
         const pairs = groups[k]
         const json = `[${pairs.map((p) => p[1]).join(',')}]`
         const fileName = `${sha1(json)}.json`
-
         const filePath = path.join(this.folder, fileName)
         newFiles.add(fileName)
-        promises.push(writeFileIfNotExists(filePath, json))
+        const writeIfNotExists = fs
+          .access(filePath)
+          .catch(() => fs.writeFile(filePath, json))
+          .then(() => {
+            console.log('wrote', fileName, json.length)
+          })
+        promises.push(writeIfNotExists)
       }
 
       for (const f of this.loadedFiles) {
         if (!newFiles.has(f)) {
           const filePath = path.join(this.folder, f)
-          promises.push(deleteFile(filePath))
+          promises.push(
+            fs.unlink(filePath).then(() => {
+              console.log('deleted', f)
+            })
+          )
         }
       }
 
@@ -106,17 +116,19 @@ export class FileDB<T extends BaseDB> implements Crud<T> {
           rej(`version conflict id: ${t.id}, old: ${old._v}, new: ${t._v}`)
         }
         const _v = (old?._v || 0) + 1
-        const json = JSON.stringify([{ ...t, _v }], null, 2)
+        const json = stringify([{ ...t, _v }])
         this.data.set(t.id, json)
         const fileName = `${sha1(json)}.json`
         const filePath = path.join(this.folder, fileName)
-        writeFileIfNotExists(filePath, json).then(() => {
-          this.loadedFiles.add(fileName)
-          const base = { id: t.id, _v }
-          res(base)
-          console.log('updated', base)
-          done()
-        })
+        fs.access(filePath)
+          .catch(() => fs.writeFile(filePath, json))
+          .then(() => {
+            this.loadedFiles.add(fileName)
+            const base = { id: t.id, _v }
+            res(base)
+            console.log('updated', base)
+            done()
+          })
       })
     })
   }

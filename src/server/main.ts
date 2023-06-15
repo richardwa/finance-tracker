@@ -6,11 +6,10 @@ import { useUploadHandler } from './uploadHandler'
 import { FileDB } from './file-db'
 import type { ParentItem } from '@/common/types'
 
+// catch-all to prevent node from exiting
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise)
   console.error('Reason:', reason)
-  // Handle the rejection or perform cleanup tasks
-  // You can also choose to ignore or log the rejection and continue execution
 })
 const args = process.argv.slice(2)
 const port = args[0]

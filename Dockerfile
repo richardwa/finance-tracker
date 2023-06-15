@@ -4,10 +4,9 @@ FROM node:bullseye-slim
 WORKDIR /app
 
 COPY package*.json ./
-COPY build ./build
-
 RUN npm ci --omit=dev && npm cache clean --force
-
+# build deps first then copy over code to optimize docker image re-use
+COPY build ./build
 
 # Expose the specified port
 EXPOSE 8085
