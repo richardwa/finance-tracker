@@ -4,7 +4,8 @@ FROM node:bullseye-slim
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+RUN npm uninstall --save vue vue-router chart.js font-awesome luxon pinia tabulator-tables \
+    && npm ci --omit=dev && npm cache clean --force
 # build deps first then copy over code to optimize docker image re-use
 COPY build ./build
 
