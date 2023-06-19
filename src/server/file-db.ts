@@ -1,4 +1,4 @@
-import type { BaseDB, Crud } from '@/common/types'
+import type { BaseDB } from '@/common/types'
 import AsyncLock from 'async-lock'
 import { filter, groupBy, map } from 'lodash/fp'
 import path from 'path'
@@ -13,7 +13,7 @@ export type FileDBConfig<T> = {
 
 const lock = new AsyncLock({ timeout: 5000 })
 const stringify = (o: object) => JSON.stringify(o, null, 2)
-export class FileDB<T extends BaseDB> implements Crud<T> {
+export class FileDB<T extends BaseDB> {
   private folder: string
   // we cache our objects in string form to ensure immutability
   private data = new Map<string, string>()

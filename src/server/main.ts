@@ -1,10 +1,9 @@
-import { endPoints } from '@/common/config'
+import { InterfaceServerManager } from '@/common/http-interface-server'
+import type { ParentItem } from '@/common/types'
 import express from 'express'
 import path from 'path'
-import { useInventoryHandler } from './inventoryHandler'
-import { useUploadHandler } from './uploadHandler'
 import { FileDB } from './file-db'
-import type { ParentItem } from '@/common/types'
+import { UploadHandler } from './uploadHandler'
 
 // catch-all to prevent node from exiting
 process.on('unhandledRejection', (reason, promise) => {
@@ -19,27 +18,47 @@ const dataPath = path.join(process.cwd(), 'data')
 const inventoryCollection = path.join(dataPath, 'db', 'inventory')
 const uploads = path.join(dataPath, 'uploads')
 const thumbs = path.join(uploads, 'thumbs')
+const manager = new InterfaceServerManager()
+const uploadHandler = new UploadHandler(uploads, thumbs)
 
 const app = express()
-const onReady = () => {
-  app.listen(port, () => {
-    console.log(`Server is running on port ${port}`)
-  })
-}
 app.use(express.json())
-
+app.use(express.raw({ type: '*/*', limit: '10mb' }))
 const inventory = new FileDB<ParentItem>({
   filePath: inventoryCollection,
-  onReady,
+  onReady: () => {
+    app.listen(port, () => {
+      console.log(`Server is running on port ${port}`)
+    })
+  },
   groupBy: (p) => p.date?.substring(0, 7) || 'null'
 })
-useInventoryHandler(app, endPoints.inventory, inventory)
 
-app.use(express.raw({ type: '*/*', limit: '10mb' }))
-useUploadHandler(app, endPoints.uploads, uploads, thumbs)
+manager.register('allInventory', () => {
+  return inventory.getAll()
+})
+manager.register('getInventory', async ({ getParams }) => {
+  const [id] = await getParams()
+  return inventory.getById(id)
+})
+manager.register('putInventory', async ({ getParams }) => {
+  const [item] = await getParams()
+  return inventory.upsert(item)
+})
+
+manager.register('uploads', async ({ req, path, getParams }) => {
+  const [data] = await getParams()
+  const name = req.url!.substring(path.length + 1)
+  return uploadHandler.upload(name, data)
+})
 
 const clientHandler = express.static(clientPath)
 app.use((req, res, next) => {
+  if (res.headersSent) {
+    return next()
+  }
+  manager.exec(req, res)
+
   if (res.headersSent) {
     return next()
   }

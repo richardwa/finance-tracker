@@ -1,13 +1,10 @@
-import { endPoints } from '@/common/config'
+import { callServerParams } from '@/common/http-interface-client'
 import type { UploadResponse } from '@/common/types'
-export const getImageUrl = (name: string) => `${endPoints.uploads}/${name}`
-export const getThumbUrl = (name: string) => `${endPoints.uploads}/thumbs/${name}`
+export const getImageUrl = (name: string) => `uploads/${name}`
+export const getThumbUrl = (name: string) => `uploads/thumbs/${name}`
 
 export const saveFile = (name: string, data: string | Blob | File): Promise<UploadResponse> =>
-  fetch(`${endPoints.uploads}/${name}`, {
-    method: 'POST',
-    body: data
-  }).then((r) => r.json())
+  callServerParams('uploads', name, data)
 
 export const saveImage = async (...files: File[]): Promise<string[]> => {
   return Promise.all(
