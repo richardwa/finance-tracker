@@ -14,6 +14,7 @@ const args = process.argv.slice(2)
 const port = args[0]
 
 const clientPath = path.join(process.cwd(), 'build', 'client')
+const clientHandler = express.static(clientPath)
 const dataPath = path.join(process.cwd(), 'data')
 const inventoryCollection = path.join(dataPath, 'db', 'inventory')
 const uploads = path.join(dataPath, 'uploads')
@@ -21,9 +22,6 @@ const thumbs = path.join(uploads, 'thumbs')
 const manager = new InterfaceServerManager()
 const uploadHandler = new UploadHandler(uploads, thumbs)
 
-const app = express()
-app.use(express.json())
-app.use(express.raw({ type: '*/*', limit: '10mb' }))
 const inventory = new FileDB<ParentItem>({
   filePath: inventoryCollection,
   onReady: () => {
@@ -52,15 +50,6 @@ manager.register('uploads', async ({ req, path, getParams }) => {
   return uploadHandler.upload(name, data)
 })
 
-const clientHandler = express.static(clientPath)
-app.use((req, res, next) => {
-  if (res.headersSent) {
-    return next()
-  }
-  manager.exec(req, res)
-
-  if (res.headersSent) {
-    return next()
-  }
-  clientHandler(req, res, next)
-})
+const app = express()
+app.use(manager.exec.bind(manager))
+app.use(clientHandler)

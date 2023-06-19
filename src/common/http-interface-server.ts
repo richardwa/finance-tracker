@@ -1,7 +1,7 @@
 import { ServerBase, type EndPoint } from '@/common/config'
 import type { IncomingMessage, ServerResponse } from 'http'
 
-type HandlerFunc = (req: IncomingMessage, res: ServerResponse) => void
+type HandlerFunc = (req: IncomingMessage, res: ServerResponse, matchedPath: string) => void
 
 const parseReqBody = <T>(req: IncomingMessage) =>
   new Promise<T>((res, rej) => {
@@ -21,6 +21,9 @@ const parseReqBody = <T>(req: IncomingMessage) =>
         }
       }
     })
+    req.on('error', (err) => {
+      rej(err)
+    })
   })
 
 type MethodArgs<T extends keyof EndPoint> = {
@@ -36,12 +39,12 @@ export class InterfaceServerManager {
     path: T,
     method: (a: MethodArgs<T>) => Promise<ReturnType<EndPoint[T]>> | ReturnType<EndPoint[T]>
   ) {
-    const handler: HandlerFunc = async (req, res) => {
+    const handler: HandlerFunc = async (req, res, matchedPath) => {
       try {
         const result = await method({
           req,
           res,
-          path,
+          path: matchedPath,
           getParams: () => parseReqBody<Parameters<EndPoint[T]>>(req)
         })
 
@@ -66,10 +69,11 @@ export class InterfaceServerManager {
   }
 
   exec(req: IncomingMessage, res: ServerResponse) {
+    console.log('req', req.url)
     for (const [key, func] of this.handlers.entries()) {
       const path = `${ServerBase}/${key}`
       if (req.url?.startsWith(path)) {
-        func(req, res)
+        func(req, res, path)
         return true
       }
     }

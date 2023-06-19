@@ -2,10 +2,10 @@ import { ServerBase, type EndPoint } from '@/common/config'
 
 export const callServerParams = async <T extends keyof EndPoint>(
   p: T,
-  urlParams: string,
+  urlParams?: string,
   ...arg: Parameters<EndPoint[T]>
 ) => {
-  const path = `${ServerBase}/${p}/${urlParams}`
+  const path = `${ServerBase}/${p}${urlParams ? '/' + urlParams : ''}`
   const resp =
     arg.length > 0
       ? await fetch(path, {
@@ -28,4 +28,4 @@ export const callServerParams = async <T extends keyof EndPoint>(
 }
 
 export const callServer = async <T extends keyof EndPoint>(p: T, ...arg: Parameters<EndPoint[T]>) =>
-  callServerParams(p, '', ...arg)
+  callServerParams(p, undefined, ...arg)
