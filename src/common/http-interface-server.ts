@@ -69,7 +69,6 @@ export class InterfaceServerManager {
   }
 
   exec(req: IncomingMessage, res: ServerResponse) {
-    console.log('req', req.url)
     for (const [key, func] of this.handlers.entries()) {
       const path = `${ServerBase}/${key}`
       if (req.url?.startsWith(path)) {
